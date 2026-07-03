@@ -7,4 +7,5 @@ abstract class NoteRepository {
   Future<Either<Failure, Unit>> addNote(Note note);
   Future<Either<Failure, Unit>> updateNote(Note note);
   Future<Either<Failure, Unit>> deleteNote(String id);
+  Future<Either<Failure, List<Note>>> getSearchNotes(String query);
 }

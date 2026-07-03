@@ -4,6 +4,7 @@ import 'package:noteapp/src/features/domain/entity/note.dart';
 import 'package:noteapp/src/features/domain/usecase/add_note_usecase.dart';
 import 'package:noteapp/src/features/domain/usecase/delete_note_usecase.dart';
 import 'package:noteapp/src/features/domain/usecase/get_notes_usecase.dart';
+import 'package:noteapp/src/features/domain/usecase/search_note_usecase.dart';
 import 'package:noteapp/src/features/domain/usecase/update_note_usecase.dart';
 
 part 'note_event.dart';
@@ -14,17 +15,20 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   final DeleteNoteUsecase deleteNote;
   final GetNotesUsecase getNotes;
   final UpdateNoteUsecase updateNote;
+  final SearchNoteUsecase searchNote;
 
   NoteBloc({
     required this.addNote,
     required this.deleteNote,
     required this.getNotes,
     required this.updateNote,
+    required this.searchNote
   }) : super(NoteInitial()) {
     on<LoadNotes>(_onLoadNotes);
     on<AddNewNote>(_onAddNote);
     on<UpdateExistingNote>(_onUpdateNote);
     on<DeleteExistingNote>(_onDeleteNote);
+    on<SearchNotes>(_onSearchNotes);
   }
 
   Future<void> _onLoadNotes(
@@ -34,6 +38,20 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     emit(NoteLoading());
 
     final result = await getNotes();
+
+    result.fold(
+          (failure) => emit(NoteError(failure.message)),
+          (notes) => emit(NoteLoaded(notes: notes)),
+    );
+  }
+
+  Future<void> _onSearchNotes(
+      SearchNotes event,
+      Emitter<NoteState> emit,
+      ) async {
+    emit(NoteLoading());
+
+    final result = await searchNote(event.query);
 
     result.fold(
           (failure) => emit(NoteError(failure.message)),

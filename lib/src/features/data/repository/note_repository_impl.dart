@@ -84,4 +84,38 @@ class NoteRepositoryImpl implements NoteRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<Note>>> getSearchNotes(String query) async{
+    try {
+      final models = await localDataSource.getNotes();
+
+      if (models.isEmpty) {
+        return Left(
+            NoDataFailure(message: 'No notes found')
+        );
+      }
+
+      final filtered = models.where((note) {
+        final title = note.title.toLowerCase();
+        final content = note.content.toLowerCase();
+        final q = query.toLowerCase();
+
+        return title.contains(q) || content.contains(q);
+      }).toList();
+
+      if (filtered.isEmpty) {
+        return Left(
+          NoDataFailure(message: 'No matching notes found'),
+        );
+      }
+
+      return Right(filtered.map((e) => e.toEntity()).toList());
+    } catch (e) {
+      return Left(
+        CacheFailure(message: e.toString()),
+      );
+    }
+  }
+
+
 }

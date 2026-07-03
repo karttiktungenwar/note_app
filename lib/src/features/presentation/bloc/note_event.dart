@@ -24,3 +24,9 @@ class DeleteExistingNote extends NoteEvent {
   const DeleteExistingNote(this.id);
 
 }
+
+class SearchNotes extends NoteEvent{
+  final String query;
+
+  const SearchNotes(this.query);
+}
