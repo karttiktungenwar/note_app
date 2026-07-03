@@ -21,11 +21,6 @@ class _NotesPageState extends State<NotesPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NoteBloc>().add(LoadNotes());
     });
-
-    _searchController.addListener(() {
-      final query = _searchController.text.trim();
-      context.read<NoteBloc>().add(SearchNotes(query));
-    });
   }
 
   @override

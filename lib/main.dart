@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noteapp/src/app/di/injection_container.dart';
 import 'package:noteapp/src/app/di/injection_container.dart' as di;
-import 'package:noteapp/src/core/database/app_database.dart';
 import 'package:noteapp/src/features/presentation/bloc/note_bloc.dart';
 import 'package:noteapp/src/features/presentation/screens/notes_page.dart';
 

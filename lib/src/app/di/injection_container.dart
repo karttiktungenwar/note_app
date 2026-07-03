@@ -1,9 +1,7 @@
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/database/app_database.dart';
 import 'package:noteapp/src/features/data/data_source/note_local_data_source.dart';
-import 'package:noteapp/src/features/data/model/note_model.dart';
 import 'package:noteapp/src/features/data/repository/note_repository_impl.dart';
 import 'package:noteapp/src/features/domain/repository/note_repository.dart';
 import 'package:noteapp/src/features/domain/usecase/add_note_usecase.dart';

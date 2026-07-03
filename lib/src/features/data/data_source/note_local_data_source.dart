@@ -1,4 +1,3 @@
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:noteapp/src/core/database/app_database.dart';
 import 'package:noteapp/src/features/data/model/note_model.dart';
 
