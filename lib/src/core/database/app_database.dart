@@ -16,6 +16,6 @@ class AppDatabaseImpl implements AppDatabase {
   Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
     Hive.init('${directory.path}/$hivePathSuffix/hive');
-    _appBox = await Hive.openBox('vconnect_$hivePathSuffix');
+    _appBox = await Hive.openBox('notemaker_$hivePathSuffix');
   }
 }
