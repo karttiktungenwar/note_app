@@ -14,3 +14,15 @@ class CacheFailure extends Failure {
 class NoDataFailure extends Failure {
   const NoDataFailure({required super.message});
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure({required super.message});
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure({super.message = 'No Internet Connection'});
+}
+
+class DefaultFailure extends Failure {
+  const DefaultFailure({super.message = 'Some Error error'});
+}
