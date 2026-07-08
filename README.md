@@ -1,5 +1,3 @@
-# noteapp
-
 # Note App
 
 A simple and intuitive Note-Taking application built using Flutter. This app allows users to easily create, view, update, and delete notes, providing a clean and responsive user interface.
