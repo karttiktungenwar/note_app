@@ -54,7 +54,10 @@ When making a request to the login endpoint, ensure your HTTP client sends a JSO
 
 JSON
 POST [https://reqres.in/api/login](https://reqres.in/api/login)
+Header
 Content-Type: application/json
+x-api-key: add your api key
+
 
 {
     "email": "eve.holt@reqres.in",
