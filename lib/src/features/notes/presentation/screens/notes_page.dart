@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noteapp/src/app/di/injection_container.dart';
-import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
 import 'package:noteapp/src/features/login/presentation/screens/login_screen.dart';
 import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
@@ -18,6 +17,16 @@ class NotesPage extends StatefulWidget {
 class _NotesPageState extends State<NotesPage> {
   final ValueNotifier<bool> _isSearching = ValueNotifier(false);
   final TextEditingController _searchController = TextEditingController();
+
+  Future<void> logout() async{
+    final navigator = Navigator.of(context);
+    //Clear the token and navigation history and send them back to LoginScreen
+    await sl<SecureStorageService>().clearAll();
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false, // This removes all previous screens from the stack
+    );
+}
 
   @override
   void initState() {
@@ -90,12 +99,7 @@ class _NotesPageState extends State<NotesPage> {
           icon: const Icon(Icons.logout),
           tooltip: 'Logout',
           onPressed: () {
-            // 2. Clear the token and navigation history and send them back to LoginScreen
-            sl<SecureStorageService>().clearAll();
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                  (route) => false, // This removes all previous screens from the stack
-            );
+            logout();
           },
         ),
       ],

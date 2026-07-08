@@ -21,9 +21,16 @@ class _LoginScreenState extends State<LoginScreen> {
   // Retrieve the service via DI
   final storage = sl<SecureStorageService>();
 
-  void goToNotesPage() {
-    Navigator.of(context).pop();
-    Navigator.of(context).push(
+  Future<void> goToNotesPage(LoginAuthState state) async {
+    // 1. Capture the navigator state while the context is guaranteed to be valid
+    final navigator = Navigator.of(context);
+
+    // 2. Perform the async operation
+    await storage.writeString(AppConstants.tokenKey, state.loginAuthEntityResp?.token ?? '');
+
+    // 3. Use the captured navigator instead of the context
+    navigator.pop();
+    navigator.push(
       MaterialPageRoute(
         builder: (context) => const NotesPage(),
       ),
@@ -40,16 +47,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<LoginAuthBloc, LoginAuthState>(
-      listener: (context, state) async {
+      listener: (context, state) {
         if (state.status == Status.success) {
           ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login success'),
           ),
           );
-          // Save token securely
-          await storage.writeString(AppConstants.tokenKey, state.loginAuthEntityResp?.token ?? '');
-          goToNotesPage();
+          goToNotesPage(state);
         } else if (state.status == Status.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
