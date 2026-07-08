@@ -6,8 +6,6 @@ import 'package:noteapp/src/features/login/data/model/request/login_auth_model_r
 import 'package:noteapp/src/features/login/data/model/response/login_auth_model_resp.dart';
 
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
-
 
 class LoginAuthRemoteDataSource with Logger{
   final ApiService apiService;
@@ -20,7 +18,7 @@ class LoginAuthRemoteDataSource with Logger{
 
       final response = await apiService.post<Map<String, dynamic>>(
         path: NetworkConstants.loginAuth,
-        body: req.toJson(),
+        body: req,
         headers: {'x-api-key': NetworkConstants.apiKey},
       );
 
@@ -32,7 +30,7 @@ class LoginAuthRemoteDataSource with Logger{
       if (token != null) {
         return LoginAuthModelResp.fromJson(response);
       } else {
-        throw ServerException(message: message.toString() ?? 'Login failed');
+        throw ServerException(message: message.toString());
       }
     } catch (e) {
       log('LOGIN ERROR: $e');

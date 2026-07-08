@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:noteapp/src/core/error/exceptions.dart';
 
-import 'custome_interceptor.dart';
+import 'custom_interceptor.dart';
 
 
 abstract class ApiService {
@@ -48,7 +47,7 @@ class ApiServiceImpl implements ApiService {
         return response.data as T;
       } else {
         throw ServerException(
-          message: response.statusMessage.toString() ?? 'Server Error',
+          message: response.statusMessage.toString(),
         );
       }
     } on DioException catch (e) {
@@ -76,7 +75,7 @@ class ApiServiceImpl implements ApiService {
         return response.data as T;
       } else {
         throw ServerException(
-          message: response.data['message'] ?? 'Server Error',
+          message: response.data['error'] ?? 'Server Error',
         );
       }
     } on ServerException catch (e) {
@@ -98,7 +97,7 @@ class ApiServiceImpl implements ApiService {
         return response.data as T;
       } else {
         throw ServerException(
-          message: response.statusMessage.toString() ?? 'Server Error',
+          message: response.statusMessage.toString(),
         );
       }
     } on DioException catch (e) {
@@ -155,7 +154,6 @@ String _getDioExceptionType(DioException e) {
     case DioExceptionType.unknown:
       return 'An unexpected error occurred. Please try again.';
     case DioExceptionType.transformTimeout:
-      // TODO: Handle this case.
-      throw UnimplementedError();
+      return 'Transform timed out. Please try again.';
   }
 }

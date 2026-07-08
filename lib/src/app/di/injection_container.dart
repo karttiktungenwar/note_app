@@ -1,6 +1,8 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/database/app_database.dart';
+import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
 import 'package:noteapp/src/core/network/api_service.dart';
 import 'package:noteapp/src/features/login/data/data_source/login_auth_remote_data_source.dart';
 import 'package:noteapp/src/features/login/data/repository/login_auth_respository_impl.dart';
@@ -30,10 +32,37 @@ Future<void> init() async {
   sl.registerLazySingleton<AppDatabase>(
         () => AppDatabaseImpl(hivePathSuffix: AppConstants.hiveBoxName),
   );
-  await sl<AppDatabase>().init();
+  sl<AppDatabase>().init();
+
+  // 1. Android Specific Options
+  const androidOptions = AndroidOptions(
+  encryptedSharedPreferences: true, // Uses Android's native EncryptedSharedPreferences
+  );
+
+  // 2. iOS Specific Options
+  const iosOptions = IOSOptions(
+  // Accessibility.first_unlock ensures data is accessible after the device restarts
+  // but before the user unlocks it (crucial for background sync/push notifications).
+  accessibility: KeychainAccessibility.first_unlock,
+  // Prevents your app's sensitive keys from being backed up to iCloud
+  synchronizable: false,
+  );
+
+  // 3. Instantiate FlutterSecureStorage with both options
+  final secureStorage = FlutterSecureStorage(
+  aOptions: androidOptions,
+  iOptions: iosOptions,
+  );
+
+  // 4. Register Service
+  sl.registerLazySingleton<SecureStorageService>(
+  () => SecureStorageServiceImpl(secureStorage),
+  );
 
   _setupLoginAuth();
   _setupNotes();
+
+  await sl.allReady();
 }
 
 void _setupLoginAuth() async {
