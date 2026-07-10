@@ -36,38 +36,57 @@ class _NoteFormState extends State<NoteForm> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                initialValue: _title,
-                decoration: const InputDecoration(labelText: 'Title'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-                onSaved: (value) => _title = value!,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        initialValue: _title,
+                        decoration: const InputDecoration(
+                            labelText: 'Title',
+                            border: OutlineInputBorder()
+                        ),
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        onSaved: (value) => _title = value!,
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        initialValue: _content,
+                        maxLines: 18,
+                        decoration: const InputDecoration(
+                            labelText: 'Content',
+                            border: OutlineInputBorder(),
+                            alignLabelWithHint: true,
+                        ),
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        onSaved: (value) => _content = value!,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                initialValue: _content,
-                decoration: const InputDecoration(labelText: 'Content'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-                onSaved: (value) => _content = value!,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    final note = Note(
-                      id: widget.note?.id ?? const Uuid().v4(),
-                      title: _title,
-                      content: _content,
-                      createdAt: widget.note?.createdAt ?? DateTime.now(),
-                    );
-                    if (widget.note == null) {
-                      BlocProvider.of<NoteBloc>(context).add(AddNewNote(note));
-                    } else {
-                      BlocProvider.of<NoteBloc>(context).add(UpdateExistingNote(note));
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      final note = Note(
+                        id: widget.note?.id ?? const Uuid().v4(),
+                        title: _title,
+                        content: _content,
+                        createdAt: widget.note?.createdAt ?? DateTime.now(),
+                      );
+                      if (widget.note == null) {
+                        BlocProvider.of<NoteBloc>(context).add(AddNewNote(note));
+                      } else {
+                        BlocProvider.of<NoteBloc>(context).add(UpdateExistingNote(note));
+                      }
+                      Navigator.pop(context);
                     }
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Save'),
+                  },
+                  child: const Text('Save'),
+                ),
               ),
             ],
           ),

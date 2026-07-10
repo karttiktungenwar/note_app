@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noteapp/src/app/di/injection_container.dart';
+import 'package:noteapp/src/core/constants/app_assets.dart';
 import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/enums/status.dart';
 import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         children: [
                           Image.asset(
-                            'assets/images/note_app.png',
+                            AppAssets.appLogo,
                             height: 120,
                             fit: BoxFit.contain,
                           ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:noteapp/src/app/di/injection_container.dart';
-import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
+import 'package:noteapp/src/core/enums/status.dart';
+import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/login/presentation/screens/login_screen.dart';
 import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
 import 'package:noteapp/src/features/notes/presentation/widgets/note_form.dart';
@@ -20,8 +20,6 @@ class _NotesPageState extends State<NotesPage> {
 
   Future<void> logout() async{
     final navigator = Navigator.of(context);
-    //Clear the token and navigation history and send them back to LoginScreen
-    await sl<SecureStorageService>().clearAll();
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
           (route) => false, // This removes all previous screens from the stack
@@ -99,7 +97,7 @@ class _NotesPageState extends State<NotesPage> {
           icon: const Icon(Icons.logout),
           tooltip: 'Logout',
           onPressed: () {
-            logout();
+            BlocProvider.of<LoginAuthBloc>(context).add(LogoutEvent());
           },
         ),
       ],
@@ -110,22 +108,34 @@ class _NotesPageState extends State<NotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: BlocBuilder<NoteBloc, NoteState>(
-        builder: (context, state) {
-          if (state is NoteLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: MultiBlocListener(
+        listeners: [
+          // Listen to LoginAuthBloc for token changes
+          BlocListener<LoginAuthBloc, LoginAuthState>(
+            listener: (context, state) {
+              if (state.logoutStatus == Status.success) {
+                logout();
+              }
+            },
+          ),
+        ],
+        child: BlocBuilder<NoteBloc, NoteState>(
+          builder: (context, state) {
+            if (state is NoteLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is NoteLoaded) {
-            return NoteList(notes: state.notes);
-          }
+            if (state is NoteLoaded) {
+              return NoteList(notes: state.notes);
+            }
 
-          if (state is NoteError) {
-            return Center(child: Text(state.message));
-          }
+            if (state is NoteError) {
+              return Center(child: Text('No notes found due to\n${state.message}'));
+            }
 
-          return const Center(child: Text('No notes found'));
-        },
+            return const Center(child: Text('No notes found'));
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(

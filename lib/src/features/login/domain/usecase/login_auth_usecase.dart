@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:noteapp/src/core/error/failure.dart';
 import 'package:noteapp/src/features/login/domain/entity/request/login_auth_entity_req.dart';
 import 'package:noteapp/src/features/login/domain/entity/response/login_auth_entity_resp.dart';
-import 'package:noteapp/src/features/login/domain/repository/login_auth_respository.dart';
+import 'package:noteapp/src/features/login/domain/repository/login_auth_repository.dart';
 
 class LoginAuthUsecase {
   final LoginAuthRepository loginAuthRepository;

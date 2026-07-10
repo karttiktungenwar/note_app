@@ -4,10 +4,14 @@ import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/database/app_database.dart';
 import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
 import 'package:noteapp/src/core/network/api_service.dart';
+import 'package:noteapp/src/features/login/data/data_source/login_auth_local_data_source.dart';
 import 'package:noteapp/src/features/login/data/data_source/login_auth_remote_data_source.dart';
-import 'package:noteapp/src/features/login/data/repository/login_auth_respository_impl.dart';
-import 'package:noteapp/src/features/login/domain/repository/login_auth_respository.dart';
+import 'package:noteapp/src/features/login/data/repository/login_auth_repository_impl.dart';
+import 'package:noteapp/src/features/login/domain/repository/login_auth_repository.dart';
+import 'package:noteapp/src/features/login/domain/usecase/login_auth_get_token_usecase.dart';
+import 'package:noteapp/src/features/login/domain/usecase/login_auth_save_token_usecase.dart';
 import 'package:noteapp/src/features/login/domain/usecase/login_auth_usecase.dart';
+import 'package:noteapp/src/features/login/domain/usecase/logout_auth_usecase.dart';
 import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/notes/data/data_source/note_local_data_source.dart';
 import 'package:noteapp/src/features/notes/data/repository/note_repository_impl.dart';
@@ -22,41 +26,37 @@ import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-
   //ApiService
   sl.registerLazySingleton<ApiService>(
-        () => ApiServiceImpl(baseUrl: AppConstants.baseURL),
+    () => ApiServiceImpl(baseUrl: AppConstants.baseURL),
   );
 
   // AppDatabase
   sl.registerLazySingleton<AppDatabase>(
-        () => AppDatabaseImpl(hivePathSuffix: AppConstants.hiveBoxName),
+    () => AppDatabaseImpl(hivePathSuffix: AppConstants.hiveBoxName),
   );
   sl<AppDatabase>().init();
 
   // 1. Android Specific Options
   const androidOptions = AndroidOptions(
-  encryptedSharedPreferences: true, // Uses Android's native EncryptedSharedPreferences
+    encryptedSharedPreferences: true,
   );
 
   // 2. iOS Specific Options
   const iosOptions = IOSOptions(
-  // Accessibility.first_unlock ensures data is accessible after the device restarts
-  // but before the user unlocks it (crucial for background sync/push notifications).
-  accessibility: KeychainAccessibility.first_unlock,
-  // Prevents your app's sensitive keys from being backed up to iCloud
-  synchronizable: false,
+    accessibility: KeychainAccessibility.first_unlock,
+    synchronizable: false,
   );
 
   // 3. Instantiate FlutterSecureStorage with both options
   final secureStorage = FlutterSecureStorage(
-  aOptions: androidOptions,
-  iOptions: iosOptions,
+    aOptions: androidOptions,
+    iOptions: iosOptions,
   );
 
   // 4. Register Service
   sl.registerLazySingleton<SecureStorageService>(
-  () => SecureStorageServiceImpl(secureStorage),
+    () => SecureStorageServiceImpl(secureStorage),
   );
 
   _setupLoginAuth();
@@ -65,46 +65,67 @@ Future<void> init() async {
   await sl.allReady();
 }
 
-void _setupLoginAuth() async {
-  //Bloc
-  sl.registerFactory(() => LoginAuthBloc(
-      loginAuthUsecase: sl()));
-
-  // RemoteDataSource
+void _setupLoginAuth() {
   sl.registerLazySingleton<LoginAuthRemoteDataSource>(
-          () => LoginAuthRemoteDataSource(apiService: sl<ApiService>()));
+    () => LoginAuthRemoteDataSourceImpl(apiService: sl<ApiService>()),
+  );
 
-  // Repository
+  sl.registerLazySingleton<LoginAuthLocalDataSource>(
+        () => LoginAuthLocalDataSourceImpl(secureStorageService: sl<SecureStorageService>()),
+  );
+
   sl.registerLazySingleton<LoginAuthRepository>(
-          () => LoginAuthRepositoryImpl(loginAuthRemoteDataSource: sl<LoginAuthRemoteDataSource>()));
+    () => LoginAuthRepositoryImpl(
+      loginAuthRemoteDataSource: sl<LoginAuthRemoteDataSource>(),
+      loginAuthLocalDataSource: sl<LoginAuthLocalDataSource>()
+    ),
+  );
 
-  // Use cases
-  sl.registerLazySingleton(() => LoginAuthUsecase(loginAuthRepository: sl<LoginAuthRepository>()));
+  sl.registerLazySingleton(
+    () => LoginAuthUsecase(loginAuthRepository: sl<LoginAuthRepository>()),
+  );
+  sl.registerLazySingleton(
+        () => LoginAuthGetTokenUsecase(loginAuthRepository: sl<LoginAuthRepository>()),
+  );
+  sl.registerLazySingleton(
+        () => LoginAuthSaveTokenUsecase(loginAuthRepository: sl<LoginAuthRepository>()),
+  );
+  sl.registerLazySingleton(
+        () => LogoutAuthUsecase(loginAuthRepository: sl<LoginAuthRepository>()),
+  );
+
+  sl.registerFactory(
+    () => LoginAuthBloc(
+        loginAuthUsecase: sl<LoginAuthUsecase>(),
+        loginAuthGetTokenUsecase: sl<LoginAuthGetTokenUsecase>(),
+        loginAuthSaveTokenUsecase: sl<LoginAuthSaveTokenUsecase>(),
+        logoutAuthUsecase: sl<LogoutAuthUsecase>(),
+    ),
+  );
 }
 
-void _setupNotes() async{
-
-  // Bloc
-  sl.registerFactory(() => NoteBloc(
-    addNote: sl(),
-    deleteNote: sl(),
-    getNotes: sl(),
-    updateNote: sl(),
-    searchNote: sl(),
-  ));
-
-  // Use cases
-  sl.registerLazySingleton(() => AddNoteUsecase(sl()));
-  sl.registerLazySingleton(() => DeleteNoteUsecase(sl()));
-  sl.registerLazySingleton(() => GetNotesUsecase(sl()));
-  sl.registerLazySingleton(() => UpdateNoteUsecase(sl()));
-  sl.registerLazySingleton(() => SearchNoteUsecase(sl()));
-
-  // Repository
-  sl.registerLazySingleton<NoteRepository>(
-  () => NoteRepositoryImpl(localDataSource: sl()));
-
-  // Data sources
+void _setupNotes() {
   sl.registerLazySingleton<NoteLocalDataSource>(
-  () => NoteLocalDataSourceImpl(appDatabase: sl<AppDatabase>()));
+    () => NoteLocalDataSourceImpl(appDatabase: sl<AppDatabase>()),
+  );
+
+  sl.registerLazySingleton<NoteRepository>(
+    () => NoteRepositoryImpl(localDataSource: sl<NoteLocalDataSource>()),
+  );
+
+  sl.registerLazySingleton(() => AddNoteUsecase(sl<NoteRepository>()));
+  sl.registerLazySingleton(() => DeleteNoteUsecase(sl<NoteRepository>()));
+  sl.registerLazySingleton(() => GetNotesUsecase(sl<NoteRepository>()));
+  sl.registerLazySingleton(() => UpdateNoteUsecase(sl<NoteRepository>()));
+  sl.registerLazySingleton(() => SearchNoteUsecase(sl<NoteRepository>()));
+
+  sl.registerFactory(
+    () => NoteBloc(
+      addNote: sl<AddNoteUsecase>(),
+      deleteNote: sl<DeleteNoteUsecase>(),
+      getNotes: sl<GetNotesUsecase>(),
+      updateNote: sl<UpdateNoteUsecase>(),
+      searchNote: sl<SearchNoteUsecase>(),
+    ),
+  );
 }
