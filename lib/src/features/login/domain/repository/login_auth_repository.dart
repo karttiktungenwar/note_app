@@ -5,4 +5,7 @@ import 'package:noteapp/src/features/login/domain/entity/response/login_auth_ent
 
 abstract class LoginAuthRepository {
   Future<Either<Failure, LoginAuthEntityResp>> getLoginAuth({required LoginAuthEntityReq req});
+  Future<Either<Failure, Unit>> saveToken(String token);
+  Future<Either<Failure,String?>> getToken();
+  Future<Either<Failure, Unit>> logout();
 }

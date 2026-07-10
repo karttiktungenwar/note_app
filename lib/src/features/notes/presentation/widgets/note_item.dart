@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:noteapp/src/core/extensions/build_context_extension.dart';
 import 'package:noteapp/src/features/notes/domain/entity/note.dart';
 import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
 import 'note_form.dart';
@@ -18,7 +19,14 @@ class NoteItem extends StatelessWidget {
         subtitle: Text(note.content),
         trailing: IconButton(
           icon: const Icon(Icons.delete),
-          onPressed: () => BlocProvider.of<NoteBloc>(context).add(DeleteExistingNote(note.id)),
+          onPressed: () => {
+            context.showConfirmationDialog(
+              message: 'Are you sure you want to delete this note?',
+              onYes: () => {
+                BlocProvider.of<NoteBloc>(context).add(DeleteExistingNote(note.id)),
+              },
+            )
+          }
         ),
         onTap: () => Navigator.push(
           context,

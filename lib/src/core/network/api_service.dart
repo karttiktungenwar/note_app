@@ -145,6 +145,11 @@ String _getDioExceptionType(DioException e) {
     case DioExceptionType.badCertificate:
       return 'Secure connection failed (Invalid Certificate).';
     case DioExceptionType.badResponse:
+      final data = e.response?.data;
+      if (data is Map) {
+        final error = data['error'];
+        if (error != null) return error.toString();
+      }
       final statusCode = e.response?.statusCode;
       return 'Server error occurred (Status: $statusCode).';
     case DioExceptionType.cancel:
