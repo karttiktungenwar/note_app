@@ -19,7 +19,7 @@ class _NotesPageState extends State<NotesPage> {
   final ValueNotifier<bool> _isSearching = ValueNotifier(false);
   final TextEditingController _searchController = TextEditingController();
 
-  Future<void> logout() async{
+  void logout() {
    context.pushAndRemoveUntil(LoginScreen());
 }
 
@@ -139,10 +139,9 @@ class _NotesPageState extends State<NotesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const NoteForm()),
-        ),
+        onPressed: () => {
+          context.push(NoteForm())
+        },
         child: const Icon(Icons.add),
       ),
     );

@@ -47,32 +47,41 @@ class NoteApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // Use BlocBuilder to listen to LoginAuthBloc and determine the home screen
-        home: BlocBuilder<LoginAuthBloc, LoginAuthState>(
-          builder: (context, state) {
-            // Show loading image while token is being fetched
-            if (state.getTokenStatus == Status.loading) {
-              return Scaffold(
-                backgroundColor: Colors.white, // Full-screen white background
-                body: Center(
-                  child: Image.asset(
-                    AppAssets.appLogo, // Replace with your image path
-                    width: 200,
-                    height: 200,
-                  ),
-                ),
-              );
-            }
-            // If the token is available in the state, route to NotesPage
-            if (state.getTokenStatus == Status.success && state.token != null && state.token!.isNotEmpty) {
-              return const NotesPage();
-            }
-            if(state.getTokenStatus == Status.error) {
-              return const LoginScreen();
-            }
-            return const LoginScreen();
-          },
-        ),
+        home: const AppHome()
       ),
+    );
+  }
+}
+
+class AppHome extends StatelessWidget {
+  const AppHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<LoginAuthBloc, LoginAuthState>(
+      builder: (context, state) {
+        // Show loading image while token is being fetched
+        if (state.getTokenStatus == Status.loading) {
+          return Scaffold(
+            backgroundColor: Colors.white, // Full-screen white background
+            body: Center(
+              child: Image.asset(
+                AppAssets.appLogo, // Replace with your image path
+                width: 200,
+                height: 200,
+              ),
+            ),
+          );
+        }
+        // If the token is available in the state, route to NotesPage
+        if (state.getTokenStatus == Status.success && state.token != null && state.token!.isNotEmpty) {
+          return const NotesPage();
+        }
+        if(state.getTokenStatus == Status.error) {
+          return const LoginScreen();
+        }
+        return const LoginScreen();
+      },
     );
   }
 }

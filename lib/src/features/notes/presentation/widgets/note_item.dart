@@ -28,10 +28,9 @@ class NoteItem extends StatelessWidget {
             )
           }
         ),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => NoteForm(note: note)),
-        ),
+        onTap: () => {
+          context.push(NoteForm(note: note))
+        },
       ),
     );
   }

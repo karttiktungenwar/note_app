@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:noteapp/src/app/di/injection_container.dart';
 import 'package:noteapp/src/core/constants/app_assets.dart';
-import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/enums/status.dart';
 import 'package:noteapp/src/core/extensions/build_context_extension.dart';
-import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
 import 'package:noteapp/src/features/login/domain/entity/request/login_auth_entity_req.dart';
 import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/notes/presentation/screens/notes_page.dart';
@@ -22,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
 
-  void goToNotesPage() async {
+  void goToNotesPage() {
     context.pushAndRemoveUntil(NotesPage());
   }
 
@@ -42,10 +39,15 @@ class _LoginScreenState extends State<LoginScreen> {
           previous.status != current.status,
           listener: (context, state) {
             if (state.status == Status.success) {
-
-              BlocProvider.of<LoginAuthBloc>(context).add(SaveLoginAuthTokenEvent(token: state.loginAuthEntityResp?.token ?? ''));
+              final token = state.loginAuthEntityResp?.token ?? '';
+              if(token.isNotEmpty) {
+                BlocProvider.of<LoginAuthBloc>(context).add(
+                    SaveLoginAuthTokenEvent(token: token));
+              }else{
+                context.showSnackBar(message: 'Please try again Login failed');
+              }
             } else if (state.status == Status.error) {
-              context.showSnackBar(message: state.failure?.message ?? 'Login failed');
+              context.showSnackBar(message: state.failure?.message ?? 'Please try again Login failed');
             }
           },
         ),
@@ -53,11 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
           listenWhen: (previous, current) =>
           previous.saveTokenStatus != current.saveTokenStatus,
           listener: (context, state){
-            if (state.status == Status.success) {
-              context.showSnackBar(message: 'Login Successfully');
+            if (state.saveTokenStatus == Status.success) {
               goToNotesPage();
-            } else if (state.status == Status.error) {
-              context.showSnackBar(message: state.failure?.message ?? 'Login failed');
+              context.showSnackBar(message: 'Login Successfully');
+            } else if (state.saveTokenStatus == Status.error) {
+              context.showSnackBar(message: state.failure?.message ?? 'Please try again Login failed');
             }
           },
         )
