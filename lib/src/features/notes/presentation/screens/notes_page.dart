@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noteapp/src/core/enums/status.dart';
+import 'package:noteapp/src/core/extensions/build_context_extension.dart';
 import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/login/presentation/screens/login_screen.dart';
 import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
@@ -18,12 +19,8 @@ class _NotesPageState extends State<NotesPage> {
   final ValueNotifier<bool> _isSearching = ValueNotifier(false);
   final TextEditingController _searchController = TextEditingController();
 
-  Future<void> logout() async{
-    final navigator = Navigator.of(context);
-    navigator.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false, // This removes all previous screens from the stack
-    );
+  void logout() {
+   context.pushAndRemoveUntil(LoginScreen());
 }
 
   @override
@@ -96,8 +93,12 @@ class _NotesPageState extends State<NotesPage> {
         IconButton(
           icon: const Icon(Icons.logout),
           tooltip: 'Logout',
-          onPressed: () {
-            BlocProvider.of<LoginAuthBloc>(context).add(LogoutEvent());
+          onPressed: () => {
+            context.showConfirmationDialog(message: "Are Sure you want to logout",
+                onYes: () => {
+                  BlocProvider.of<LoginAuthBloc>(context).add(LogoutEvent())
+              }
+            )
           },
         ),
       ],
@@ -130,7 +131,7 @@ class _NotesPageState extends State<NotesPage> {
             }
 
             if (state is NoteError) {
-              return Center(child: Text('No notes found due to\n${state.message}'));
+              return Center(child: Text(state.message));
             }
 
             return const Center(child: Text('No notes found'));
@@ -138,10 +139,9 @@ class _NotesPageState extends State<NotesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const NoteForm()),
-        ),
+        onPressed: () => {
+          context.push(NoteForm())
+        },
         child: const Icon(Icons.add),
       ),
     );

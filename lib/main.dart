@@ -3,9 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:noteapp/src/app/di/injection_container.dart' as di;
 import 'package:noteapp/src/core/constants/app_assets.dart';
-import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/enums/status.dart';
-import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
 import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/login/presentation/screens/login_screen.dart';
 import 'package:noteapp/src/features/notes/presentation/bloc/note_bloc.dart';
@@ -49,32 +47,41 @@ class NoteApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // Use BlocBuilder to listen to LoginAuthBloc and determine the home screen
-        home: BlocBuilder<LoginAuthBloc, LoginAuthState>(
-          builder: (context, state) {
-            // Show loading image while token is being fetched
-            if (state.getTokenStatus == Status.loading) {
-              return Scaffold(
-                backgroundColor: Colors.white, // Full-screen white background
-                body: Center(
-                  child: Image.asset(
-                    AppAssets.appLogo, // Replace with your image path
-                    width: 200,
-                    height: 200,
-                  ),
-                ),
-              );
-            }
-            // If the token is available in the state, route to NotesPage
-            if (state.getTokenStatus == Status.success && state.token != null && state.token!.isNotEmpty) {
-              return const NotesPage();
-            }
-            if(state.getTokenStatus == Status.error) {
-              return const LoginScreen();
-            }
-            return const LoginScreen();
-          },
-        ),
+        home: const AppHome()
       ),
+    );
+  }
+}
+
+class AppHome extends StatelessWidget {
+  const AppHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<LoginAuthBloc, LoginAuthState>(
+      builder: (context, state) {
+        // Show loading image while token is being fetched
+        if (state.getTokenStatus == Status.loading) {
+          return Scaffold(
+            backgroundColor: Colors.white, // Full-screen white background
+            body: Center(
+              child: Image.asset(
+                AppAssets.appLogo, // Replace with your image path
+                width: 200,
+                height: 200,
+              ),
+            ),
+          );
+        }
+        // If the token is available in the state, route to NotesPage
+        if (state.getTokenStatus == Status.success && state.token != null && state.token!.isNotEmpty) {
+          return const NotesPage();
+        }
+        if(state.getTokenStatus == Status.error) {
+          return const LoginScreen();
+        }
+        return const LoginScreen();
+      },
     );
   }
 }

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:noteapp/src/app/di/injection_container.dart';
 import 'package:noteapp/src/core/constants/app_assets.dart';
-import 'package:noteapp/src/core/constants/app_constants.dart';
 import 'package:noteapp/src/core/enums/status.dart';
-import 'package:noteapp/src/core/local_storage/secure_storage_service.dart';
+import 'package:noteapp/src/core/extensions/build_context_extension.dart';
 import 'package:noteapp/src/features/login/domain/entity/request/login_auth_entity_req.dart';
 import 'package:noteapp/src/features/login/presentation/bloc/login_auth_bloc.dart';
 import 'package:noteapp/src/features/notes/presentation/screens/notes_page.dart';
@@ -19,23 +17,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  // Retrieve the service via DI
-  final storage = sl<SecureStorageService>();
 
-  Future<void> goToNotesPage(LoginAuthState state) async {
-    // 1. Capture the navigator state while the context is guaranteed to be valid
-    final navigator = Navigator.of(context);
 
-    // 2. Perform the async operation
-    await storage.writeString(AppConstants.tokenKey, state.loginAuthEntityResp?.token ?? '');
-
-    // 3. Use the captured navigator instead of the context
-    navigator.pop();
-    navigator.push(
-      MaterialPageRoute(
-        builder: (context) => const NotesPage(),
-      ),
-    );
+  void goToNotesPage() {
+    context.pushAndRemoveUntil(NotesPage());
   }
 
   @override
@@ -47,24 +32,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<LoginAuthBloc, LoginAuthState>(
-      listener: (context, state) {
-        if (state.status == Status.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login success'),
-          ),
-          );
-          goToNotesPage(state);
-        } else if (state.status == Status.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.failure?.message ?? 'Login failed'),
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<LoginAuthBloc, LoginAuthState>(
+          listenWhen: (previous, current) =>
+          previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == Status.success) {
+              final token = state.loginAuthEntityResp?.token ?? '';
+              if(token.isNotEmpty) {
+                BlocProvider.of<LoginAuthBloc>(context).add(
+                    SaveLoginAuthTokenEvent(token: token));
+              }else{
+                context.showSnackBar(message: 'Please try again Login failed');
+              }
+            } else if (state.status == Status.error) {
+              context.showSnackBar(message: state.failure?.message ?? 'Please try again Login failed');
+            }
+          },
+        ),
+        BlocListener<LoginAuthBloc, LoginAuthState>(
+          listenWhen: (previous, current) =>
+          previous.saveTokenStatus != current.saveTokenStatus,
+          listener: (context, state){
+            if (state.saveTokenStatus == Status.success) {
+              goToNotesPage();
+              context.showSnackBar(message: 'Login Successfully');
+            } else if (state.saveTokenStatus == Status.error) {
+              context.showSnackBar(message: state.failure?.message ?? 'Please try again Login failed');
+            }
+          },
+        )
+      ],
+      child: BlocBuilder<LoginAuthBloc, LoginAuthState>(
+        builder: (context, state) {
         final isLoading = state.status == Status.loading;
 
         return Scaffold(
@@ -155,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
+    )
     );
   }
 }
