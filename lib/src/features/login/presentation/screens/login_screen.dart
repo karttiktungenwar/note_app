@@ -17,6 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
 
   void goToNotesPage() {
@@ -102,53 +103,86 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock_outline),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                          final req = LoginAuthEntityReq(
-                            email: emailController.text.trim(),
-                            password: passwordController.text.trim(),
-                          );
-
-                          context.read<LoginAuthBloc>().add(
-                            GetLoginAuthEvent(req: req),
-                          );
-                        },
-                        child: isLoading
-                            ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Email is required';
+                              }
+                              final email = value.trim();
+                              // Simple email regex (good enough for most cases)
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$');
+                              if (!emailRegex.hasMatch(email)) {
+                                return 'Enter a valid email';
+                              }
+                              return null;
+                            },
                           ),
-                        )
-                            : const Text('Login'),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Password',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.lock_outline),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () {
+                                // validate form first
+                                if (_formKey.currentState?.validate() ?? false) {
+                                  final req = LoginAuthEntityReq(
+                                    email: emailController.text.trim(),
+                                    password: passwordController.text.trim(),
+                                  );
+
+                                  context.read<LoginAuthBloc>().add(
+                                    GetLoginAuthEvent(req: req),
+                                  );
+                                } else {
+                                  // Optionally: focus the first invalid field, or show a snackbar.
+                                }
+                              },
+                              child: isLoading
+                                  ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                                  : const Text('Login'),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
